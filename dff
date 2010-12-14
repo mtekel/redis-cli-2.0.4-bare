@@ -1,0 +1,111 @@
+46a47
+> #define REDIS_CLI_VERSION "2.0.4"
+64a66
+>     int bare_output; /* bare, computer parsable output */
+122,143c124,146
+<     printf("\"");
+<     while(len--) {
+<         switch(*s) {
+<         case '\\':
+<         case '"':
+<             printf("\\%c",*s);
+<             break;
+<         case '\n': printf("\\n"); break;
+<         case '\r': printf("\\r"); break;
+<         case '\t': printf("\\t"); break;
+<         case '\a': printf("\\a"); break;
+<         case '\b': printf("\\b"); break;
+<         default:
+<             if (isprint(*s))
+<                 printf("%c",*s);
+<             else
+<                 printf("\\x%02x",(unsigned char)*s);
+<             break;
+<         }
+<         s++;
+<     }
+<     printf("\"");
+---
+>     if (!config.bare_output) printf("\"");
+> 	while(len--) {
+> 		if (!config.bare_output)
+> 			switch(*s) {
+> 				case '\\':
+> 				case '"':
+> 					printf("\\%c",*s);
+> 					break;
+> 				case '\n': printf("\\n"); break;
+> 				case '\r': printf("\\r"); break;
+> 				case '\t': printf("\\t"); break;
+> 				case '\a': printf("\\a"); break;
+> 				case '\b': printf("\\b"); break;
+> 				default:
+> 					if (isprint(*s))
+> 						printf("%c",*s);
+> 					else
+> 						printf("\\x%02x",(unsigned char)*s);
+> 					break;
+> 			} else printf("%c", *s);
+> 	s++;
+> 	}
+>     if (!config.bare_output) printf("\"");
+155c158
+<         printf("(nil)\n");
+---
+>         if (!config.bare_output) printf("(nil)\n");
+184c187
+<         printf("(nil)\n");
+---
+>         if (!config.bare_output) printf("(nil)\n");
+188c191
+<         printf("(empty list or set)\n");
+---
+>         if (!config.bare_output) printf("(empty list or set)\n");
+191c194
+<         if (config.tty) printf("%d. ", c);
+---
+>         if (config.tty && !config.bare_output) printf("%d. ", c);
+216c219
+<         if (config.tty) printf("(error) ");
+---
+>         if (config.tty && !config.bare_output) printf("(error) ");
+222c225
+<         if (config.tty) printf("(integer) ");
+---
+>         if (config.tty && !config.bare_output) printf("(integer) ");
+257c260,262
+<     "Welcome to redis-cli 2.0.0!\n"
+---
+>     "Welcome to redis-cli "
+>     REDIS_CLI_VERSION
+>     "\n"
+310c315
+<             printf("Reading messages... (press Ctrl-c to quit)\n");
+---
+>             if (!config.bare_output) printf("Reading messages... (press Ctrl-c to quit)\n");
+313c318,320
+<                 printf("\n\n");
+---
+>                 if (!config.bare_output) printf("\n");
+>                 printf("\n");
+>                 fflush(stdout);
+339a347,348
+>         } else if (!strcmp(argv[i],"help") && lastarg) {
+>             usage();
+341a351,352
+>         } else if (!strcmp(argv[i],"-b")) {
+>             config.bare_output = 1;
+366c377
+<             printf("redis-cli shipped with Redis verison %s\n", "2.0.0");
+---
+>             printf("redis-cli shipped with Redis verison %s\n", REDIS_CLI_VERSION);
+393c404
+<     fprintf(stderr, "usage: redis-cli [-iv] [-h host] [-p port] [-a authpw] [-r repeat_times] [-n db_num] cmd arg1 arg2 arg3 ... argN\n");
+---
+>     fprintf(stderr, "usage: redis-cli [-vb] [-h host] [-p port] [-a authpw] [-r repeat_times] [-n db_num] cmd arg1 arg2 arg3 ... argN\n");
+398c409
+<     fprintf(stderr, "\nRun in interactive mode: redis-cli -i or just don't pass any command\n");
+---
+>     fprintf(stderr, "\nRun in interactive mode: just don't pass any command\n");
+482a494
+>     config.bare_output = 0;
